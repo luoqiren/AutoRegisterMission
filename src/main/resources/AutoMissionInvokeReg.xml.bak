@@ -1,0 +1,36 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean name="quartzTestJob"
+		class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject">
+			<bean class="com.lqr.invokeUtils.CallMissionsInvokeCode" />
+		</property>
+		<property name="targetMethod" value="autoRunning" />
+		<!--作业不并发调度 -->
+		<property name="concurrent" value="false" />
+	</bean>
+
+	<!--Cron表达式触发器 -->
+	<bean id="cronTrigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="quartzTestJob" />
+		<!-- 可以根据实际需要调整, 1例如1分钟调度一次，根据实际的注册时间来执行自动任务，节假日是否执行 -->
+		<property name="cronExpression" value="0/10 * * * * ?" />
+		
+	</bean>
+
+	<!--配置调度工厂 -->
+	<bean
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<!--<ref bean="simpleTrigger"/> -->
+				<ref bean="cronTrigger" />
+			</list>
+		</property>
+	</bean>
+
+</beans>

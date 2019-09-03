@@ -1,0 +1,99 @@
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.springframework.org/schema/beans" xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:cache="http://www.springframework.org/schema/cache" xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-4.0.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+       http://www.springframework.org/schema/cache 
+       http://www.springframework.org/schema/cache/spring-cache-4.0.xsd">
+
+
+    <!-- 扫描类包以启动注解驱动的bean -->
+   <!--  <context:component-scan base-package="com.lqr.service.impl" use-default-filters="false">
+    	<context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+    </context:component-scan>
+    <context:component-scan base-package="com.lqr.dao.impl"  use-default-filters="false">
+    	<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+    </context:component-scan> -->
+    <!-- 扫描类包以启动注解驱动的bean -->
+    <context:component-scan base-package="com.lqr.service.impl"/>
+    <context:component-scan base-package="com.lqr.dao.impl"/>
+    
+	<!-- 配置数据源 -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.cj.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/automission?useUnicode=true&amp;characterEncoding=utf-8&amp;useSSL=true&amp;serverTimezone=UTC"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="xxxxxxxx"></property> 
+	</bean>
+
+	<!-- 配置SessionFactory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop> <!-- 设置数据库方言 -->
+				<prop key="hibernate.hbm2ddl.auto">none</prop> <!-- 设置自动创建create|更新update|验证数据库表结构validate|
+																create-drop sessionFactory创建的时候建表, 关闭时删除表 -->
+				<prop key="hibernate.show_sql">true</prop>       <!-- 是否在控制台显示sql -->
+				<prop key="hibernate.format_sql">true</prop>     <!-- 是否格式化sql，优化显示 -->
+				<prop key="hibernate.cache.use_second_level_cache">false</prop> <!-- 是否开启二级缓存 -->
+				<prop key="hibernate.cache.use_query_cache">false</prop>		<!-- 是否开启查询缓存 -->
+				<prop key="hibernate.jdbc.fetch_size">100</prop> 				<!-- 数据库批量查询最大数 -->
+				<prop key="hibernate.jdbc.batch_size">100</prop>				<!-- 数据库批量更新、添加、删除操作最大数 -->
+				<prop key="hibernate.connection.autocommit">true</prop>			<!-- 是否自动提交事务 -->
+				<prop key="hibernate.connection.release_mode">auto</prop>		<!-- 指定hibernate在何时释放JDBC连接 -->
+				<!-- <prop key="jdbc.use_scrollable_resultset">false</prop> -->
+				<!-- 创建session方式 hibernate4.x 的方式 -->
+				<prop key="hibernate.current_session_context_class">org.springframework.orm.hibernate4.SpringSessionContext</prop> 
+				<!-- javax.persistence.validation.mode默认情况下是auto的，
+				就是说如果不设置的话它是会自动去你的classpath下面找一个bean-validation**包 
+                                 所以把它设置为none即可 -->
+				<prop key="javax.persistence.validation.mode">none</prop>
+			</props>
+		</property>
+		<!--注解扫描的包 可以使用下面代替 -->
+		<property name="packagesToScan" value="com.lqr.model"/>
+		<!-- <property name="packagesToScan" value="com.lqr.model,com.beiwai.dto"/> -->
+	</bean>
+
+	<!-- 配置一个事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"  />
+	</bean>
+
+	<!-- 配置事务异常封装 -->
+   	<bean id="persistenceExceptionTranslationPostProcessor" 
+       class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+     <!--配置template -->
+     <bean id="hibernateTemplate" class="org.springframework.orm.hibernate4.HibernateTemplate"
+     		p:sessionFactory-ref="sessionFactory" />
+	<!-- 配置事务 -->
+	<aop:config>  
+	    <aop:pointcut id="serviceMethods" expression="execution(* com.lqr.service.impl..*.*(..))"/>  
+	    <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethods" />  
+	</aop:config>  
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">  
+	   <tx:attributes>  
+	    <tx:method name="delete*" propagation="REQUIRED" />  
+	    <tx:method name="update*" propagation="REQUIRED" />  
+	    <tx:method name="save*" propagation="REQUIRED" />  
+	    <tx:method name="add*" propagation="REQUIRED" />
+	    <tx:method name="insert*" propagation="REQUIRED" />  
+	    <tx:method name="cancel*" propagation="REQUIRED" />  
+	    
+	    <tx:method name="*" read-only="true" />  
+	    </tx:attributes>  
+	</tx:advice>  
+	<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="false"/>  
+</beans>
