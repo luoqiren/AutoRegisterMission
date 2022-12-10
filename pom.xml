@@ -8,7 +8,7 @@
 	<name>AutoRegisterMission</name>
 	<description>AutoRegisterMission</description>
 	<properties>
-		<spring.version>4.2.0.RELEASE</spring.version>
+		<spring.version>6.0.0</spring.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project_charset>UTF-8</project_charset>
 		<maven.compiler.source>1.7</maven.compiler.source>
